@@ -1,0 +1,15 @@
+environment: development
+apiVersion: v1
+
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+
+logging:
+  level: INFO
+  loggers:
+    dev.vink.fencewatch: DEBUG

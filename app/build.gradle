@@ -1,0 +1,59 @@
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+plugins {
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+version = '0.0.1'
+group = 'dev.vink.fencewatch'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation libs.guava
+
+    // https://mvnrepository.com/artifact/io.dropwizard/dropwizard-core
+    implementation 'io.dropwizard:dropwizard-core:4.0.14'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+application {
+    mainClass = 'dev.vink.fencewatch.FenceWatchApplication'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+shadowJar {
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.SF'
+    archiveBaseName.set(rootProject.name)
+    archiveClassifier.set('')
+    archiveVersion.set(project.version)
+    manifest {
+        attributes 'Implementation-Title': rootProject.name
+        attributes 'Implementation-Version': project.version
+        attributes 'Implementation-Vendor-Id': project.group
+        attributes 'Build-Time': ZonedDateTime.now(ZoneId.of("UTC"))
+                .format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
+        attributes 'Created-By': 'Gradle ' + gradle.gradleVersion
+        attributes 'Main-Class': 'dev.vink.fencewatch.FenceWatchApplication'
+    }
+}
+
+tasks.named('jar') {
+    enabled = false
+}
