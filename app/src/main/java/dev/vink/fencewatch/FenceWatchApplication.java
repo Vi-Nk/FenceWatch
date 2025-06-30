@@ -6,8 +6,11 @@ import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.db.DataSourceFactory;
 
 import dev.vink.fencewatch.core.Device;
+import dev.vink.fencewatch.core.Zone; // <-- Add this import
 import dev.vink.fencewatch.db.DeviceDAO;
+import dev.vink.fencewatch.db.ZoneDAO;
 import dev.vink.fencewatch.api.DeviceResource;
+import dev.vink.fencewatch.api.ZoneResource;
 
 import java.util.Optional;
 
@@ -16,7 +19,8 @@ import javax.sql.DataSource;
 public class FenceWatchApplication extends Application<FenceWatchConfiguration> {
 
     private final HibernateBundle<FenceWatchConfiguration> hibernateBundle = new HibernateBundle<FenceWatchConfiguration>(
-            Device.class) {
+            Device.class,
+            Zone.class) {
         @Override
         public DataSourceFactory getDataSourceFactory(FenceWatchConfiguration configuration) {
             return configuration.getDataSourceFactory();
@@ -38,6 +42,8 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
 
         final DeviceDAO deviceDAO = new DeviceDAO(hibernateBundle.getSessionFactory());
         environment.jersey().register(new DeviceResource(deviceDAO));
+        final ZoneDAO zoneDAO = new ZoneDAO(hibernateBundle.getSessionFactory());
+        environment.jersey().register(new ZoneResource(zoneDAO));
 
         // Create DataSource for health check
         DataSourceFactory dsFactory = configuration.getDataSourceFactory();

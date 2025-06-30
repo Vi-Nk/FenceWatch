@@ -29,7 +29,7 @@ public class DeviceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @UnitOfWork
     public List<Device> getAllDevices() {
-        return deviceDAO.list();
+        return deviceDAO.getAll();
     }
 
     @GET
@@ -37,24 +37,19 @@ public class DeviceResource {
     @Produces(MediaType.APPLICATION_JSON)
     @UnitOfWork
     public Optional<Device> getDevicebyID(@PathParam("id") String id) {
-        return deviceDAO.findByID(id);
+        return deviceDAO.getByID(id);
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @UnitOfWork
-    public Response registerDevice(Map<String, Object> input) {
-        String deviceId = (String) input.get("deviceId");
-        String vehicleType = (String) input.get("vehicleType");
-        String driverName = (String) input.get("driverName");
-
-        Device device = new Device(deviceId, vehicleType, driverName);
+    public Response registerDevice(Device device) {
         deviceDAO.create(device);
 
-        return Response.ok(Map.of(
+        return Response.accepted(Map.of(
                 "status", "registered",
-                "deviceId", deviceId)).build();
+                "deviceId", device.getDeviceID())).build();
     }
 
 }

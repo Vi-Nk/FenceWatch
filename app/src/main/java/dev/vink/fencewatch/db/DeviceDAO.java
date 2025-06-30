@@ -19,11 +19,11 @@ public class DeviceDAO extends AbstractDAO<Device> {
         return persist(device);
     }
 
-    public Optional<Device> findByID(String deviceID) {
+    public Optional<Device> getByID(String deviceID) {
         return Optional.ofNullable(get(deviceID));
     }
 
-    public List<Device> list() {
+    public List<Device> getAll() {
         Query<Device> q = currentSession().createQuery("FROM Device", Device.class);
 
         return q.getResultList();
