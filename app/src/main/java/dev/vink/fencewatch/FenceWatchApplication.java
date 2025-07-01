@@ -5,12 +5,9 @@ import io.dropwizard.core.setup.Environment;
 import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.db.DataSourceFactory;
 
-import dev.vink.fencewatch.core.Device;
-import dev.vink.fencewatch.core.Zone; // <-- Add this import
-import dev.vink.fencewatch.db.DeviceDAO;
-import dev.vink.fencewatch.db.ZoneDAO;
-import dev.vink.fencewatch.api.DeviceResource;
-import dev.vink.fencewatch.api.ZoneResource;
+import dev.vink.fencewatch.core.*;
+import dev.vink.fencewatch.db.*;
+import dev.vink.fencewatch.api.*;
 
 import java.util.Optional;
 
@@ -20,6 +17,7 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
 
     private final HibernateBundle<FenceWatchConfiguration> hibernateBundle = new HibernateBundle<FenceWatchConfiguration>(
             Device.class,
+            Location.class,
             Zone.class) {
         @Override
         public DataSourceFactory getDataSourceFactory(FenceWatchConfiguration configuration) {
@@ -41,9 +39,12 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
         System.out.println("FenceWatch Application server is starting...");
 
         final DeviceDAO deviceDAO = new DeviceDAO(hibernateBundle.getSessionFactory());
-        environment.jersey().register(new DeviceResource(deviceDAO));
         final ZoneDAO zoneDAO = new ZoneDAO(hibernateBundle.getSessionFactory());
+        final LocationDAO locationDAO = new LocationDAO(hibernateBundle.getSessionFactory());
+
+        environment.jersey().register(new DeviceResource(deviceDAO));
         environment.jersey().register(new ZoneResource(zoneDAO));
+        environment.jersey().register(new LocationUpdateResource(locationDAO, deviceDAO));
 
         // Create DataSource for health check
         DataSourceFactory dsFactory = configuration.getDataSourceFactory();
@@ -51,10 +52,9 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
         Optional<String> validationQuery = dsFactory.getValidationQuery();
 
         environment.jersey().register(
-                new dev.vink.fencewatch.api.HealthCheckResource(
+                new HealthCheckResource(
                         dataSource,
                         validationQuery.orElse(null) // Pass null if not present
                 ));
     }
-
 }
