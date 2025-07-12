@@ -25,6 +25,10 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.h2database/h2
     implementation 'com.h2database:h2:2.3.232'
+
+    // https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-jetty-server
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:11.0.25'
+
 }
 
 java {

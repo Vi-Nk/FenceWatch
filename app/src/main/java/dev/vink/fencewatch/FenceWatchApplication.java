@@ -8,10 +8,13 @@ import io.dropwizard.db.DataSourceFactory;
 import dev.vink.fencewatch.core.*;
 import dev.vink.fencewatch.db.*;
 import dev.vink.fencewatch.api.*;
+import dev.vink.fencewatch.api.websocket.*;
 
 import java.util.Optional;
 
 import javax.sql.DataSource;
+
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 
 public class FenceWatchApplication extends Application<FenceWatchConfiguration> {
 
@@ -38,6 +41,7 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
     public void run(FenceWatchConfiguration configuration, Environment environment) throws Exception {
         System.out.println("FenceWatch Application server is starting...");
 
+        // REST Resource handler registration
         final DeviceDAO deviceDAO = new DeviceDAO(hibernateBundle.getSessionFactory());
         final ZoneDAO zoneDAO = new ZoneDAO(hibernateBundle.getSessionFactory());
         final LocationDAO locationDAO = new LocationDAO(hibernateBundle.getSessionFactory());
@@ -45,6 +49,13 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
         environment.jersey().register(new DeviceResource(deviceDAO));
         environment.jersey().register(new ZoneResource(zoneDAO));
         environment.jersey().register(new LocationUpdateResource(locationDAO, deviceDAO));
+
+        // Register WebSocket endpoint with Jetty
+        JettyWebSocketServletContainerInitializer.configure(
+                environment.getApplicationContext(),
+                (servletContext, wsContainer) -> {
+                    wsContainer.addMapping("/ws/events", (req, resp) -> new EventSocket());
+                });
 
         // Create DataSource for health check
         DataSourceFactory dsFactory = configuration.getDataSourceFactory();
