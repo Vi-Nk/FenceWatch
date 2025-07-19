@@ -1,30 +1,44 @@
 package dev.vink.fencewatch.core;
 
 import java.time.Instant;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "ZoneEvent")
 public class ZoneEvent {
 
-    private String deviceId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "device_id", nullable = false)
+    private String deviceID;
+
+    @Column(name = "zone_id", nullable = false)
     private String zoneId;
+
+    @Column(name = "event", nullable = false)
     private String event; // "ENTER" or "EXIT"
+
+    @Column(name = "timestamp", nullable = false)
     private Instant timestamp;
 
     public ZoneEvent() {
     }
 
-    public ZoneEvent(String deviceId, String zoneId, String event, Instant timestamp) {
-        this.deviceId = deviceId;
+    public ZoneEvent(String deviceID, String zoneId, String event, Instant timestamp) {
+        this.deviceID = deviceID;
         this.zoneId = zoneId;
         this.event = event;
         this.timestamp = timestamp;
     }
 
-    public String getDeviceId() {
-        return deviceId;
+    public String getdeviceID() {
+        return deviceID;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setdeviceID(String deviceID) {
+        this.deviceID = deviceID;
     }
 
     public String getZoneId() {
@@ -54,7 +68,7 @@ public class ZoneEvent {
     @Override
     public String toString() {
         return "ZoneEvent{" +
-                "deviceId='" + deviceId + '\'' +
+                "deviceID='" + deviceID + '\'' +
                 ", zoneId='" + zoneId + '\'' +
                 ", event='" + event + '\'' +
                 ", timestamp=" + timestamp +

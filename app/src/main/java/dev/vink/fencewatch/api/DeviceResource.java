@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import dev.vink.fencewatch.core.Device;
+import dev.vink.fencewatch.core.ZoneEvent;
 import dev.vink.fencewatch.db.DeviceDAO;
+import dev.vink.fencewatch.db.ZoneEventDAO;
 import io.dropwizard.hibernate.UnitOfWork;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -20,9 +22,11 @@ import jakarta.ws.rs.core.Response;
 public class DeviceResource {
 
     private final DeviceDAO deviceDAO;
+    private final ZoneEventDAO zoneEventDAO;
 
-    public DeviceResource(DeviceDAO deviceDAO) {
+    public DeviceResource(DeviceDAO deviceDAO, ZoneEventDAO zoneEventDAO) {
         this.deviceDAO = deviceDAO;
+        this.zoneEventDAO = zoneEventDAO;
     }
 
     @GET
@@ -50,6 +54,14 @@ public class DeviceResource {
         return Response.accepted(Map.of(
                 "status", "registered",
                 "deviceId", device.getDeviceID())).build();
+    }
+
+    @GET
+    @Path("/{id}/events")
+    @Produces(MediaType.APPLICATION_JSON)
+    @UnitOfWork
+    public List<ZoneEvent> getEventsbyID(@PathParam("id") String id) {
+        return zoneEventDAO.findEventsbyDevice(id);
     }
 
 }

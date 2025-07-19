@@ -7,6 +7,9 @@ import io.dropwizard.db.DataSourceFactory;
 
 import dev.vink.fencewatch.core.*;
 import dev.vink.fencewatch.db.*;
+import dev.vink.fencewatch.service.EventBroadcaster;
+import dev.vink.fencewatch.service.SpatialIndex;
+import dev.vink.fencewatch.service.ZoneEvaluator;
 import dev.vink.fencewatch.api.*;
 import dev.vink.fencewatch.api.websocket.*;
 
@@ -21,7 +24,8 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
     private final HibernateBundle<FenceWatchConfiguration> hibernateBundle = new HibernateBundle<FenceWatchConfiguration>(
             Device.class,
             Location.class,
-            Zone.class) {
+            Zone.class,
+            ZoneEvent.class) {
         @Override
         public DataSourceFactory getDataSourceFactory(FenceWatchConfiguration configuration) {
             return configuration.getDataSourceFactory();
@@ -45,10 +49,14 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
         final DeviceDAO deviceDAO = new DeviceDAO(hibernateBundle.getSessionFactory());
         final ZoneDAO zoneDAO = new ZoneDAO(hibernateBundle.getSessionFactory());
         final LocationDAO locationDAO = new LocationDAO(hibernateBundle.getSessionFactory());
+        final ZoneEventDAO zoneEventDAO = new ZoneEventDAO(hibernateBundle.getSessionFactory());
 
-        environment.jersey().register(new DeviceResource(deviceDAO));
+        final EventBroadcaster eventBroadcaster = new EventBroadcaster(2);
+        final ZoneEvaluator zoneEvaluator = new ZoneEvaluator(new SpatialIndex(), eventBroadcaster, zoneEventDAO, 2);
+
+        environment.jersey().register(new DeviceResource(deviceDAO, zoneEventDAO));
         environment.jersey().register(new ZoneResource(zoneDAO));
-        environment.jersey().register(new LocationUpdateResource(locationDAO, deviceDAO));
+        environment.jersey().register(new LocationUpdateResource(locationDAO, deviceDAO, zoneEvaluator));
 
         // Register WebSocket endpoint with Jetty
         JettyWebSocketServletContainerInitializer.configure(

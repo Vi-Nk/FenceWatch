@@ -14,11 +14,14 @@ import dev.vink.fencewatch.core.ZoneEvent;
 public class EventBroadcaster {
 
     private final BlockingQueue<ZoneEvent> eventQueue = new LinkedBlockingQueue<>();
+    private final ExecutorService broadcastWorkers;
 
-    public EventBroadcaster() {
-        Thread worker = new Thread(this::processQueue, "EventBroadcaster-Worker");
-        worker.setDaemon(true);
-        worker.start();
+    public EventBroadcaster(int threadCount) {
+        this.broadcastWorkers = Executors.newFixedThreadPool(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            broadcastWorkers.submit(this::processQueue);
+        }
     }
 
     public void enqueue(ZoneEvent event) {
@@ -39,7 +42,7 @@ public class EventBroadcaster {
 
     private void broadcast(ZoneEvent event) {
         String json = serializeToJson(event);
-        for (Session session : DeviceSessionRegistry.getSessions(event.getDeviceId())) {
+        for (Session session : DeviceSessionRegistry.getSessions(event.getdeviceID())) {
             if (session.isOpen()) {
                 try {
                     session.getRemote().sendString(json);

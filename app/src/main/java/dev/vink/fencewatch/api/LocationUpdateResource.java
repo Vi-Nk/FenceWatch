@@ -2,6 +2,7 @@ package dev.vink.fencewatch.api;
 
 import dev.vink.fencewatch.core.Location;
 import dev.vink.fencewatch.db.LocationDAO;
+import dev.vink.fencewatch.service.ZoneEvaluator;
 import dev.vink.fencewatch.db.DeviceDAO;
 import io.dropwizard.hibernate.UnitOfWork;
 import jakarta.ws.rs.*;
@@ -17,10 +18,12 @@ public class LocationUpdateResource {
 
     private final LocationDAO locationDAO;
     private final DeviceDAO deviceDAO;
+    private final ZoneEvaluator zoneEvaluator;
 
-    public LocationUpdateResource(LocationDAO locationDAO, DeviceDAO deviceDAO) {
+    public LocationUpdateResource(LocationDAO locationDAO, DeviceDAO deviceDAO, ZoneEvaluator zoneEvaluator) {
         this.locationDAO = locationDAO;
         this.deviceDAO = deviceDAO;
+        this.zoneEvaluator = zoneEvaluator;
     }
 
     @POST
@@ -35,6 +38,7 @@ public class LocationUpdateResource {
                     .entity("Device not found for ID: " + location.getDeviceID()).build();
         }
         locationDAO.createOrUpdate(location);
+        zoneEvaluator.evaluate(location);
         return Response.status(Response.Status.CREATED).build();
     }
 

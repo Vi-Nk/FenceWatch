@@ -10,6 +10,7 @@ import java.util.concurrent.*;
 import dev.vink.fencewatch.core.Location;
 import dev.vink.fencewatch.core.Zone;
 import dev.vink.fencewatch.core.ZoneEvent;
+import dev.vink.fencewatch.db.ZoneEventDAO;
 
 public class ZoneEvaluator {
 
@@ -17,12 +18,14 @@ public class ZoneEvaluator {
     private final EventBroadcaster broadcaster;
     private final ExecutorService threadPool;
     private final Map<String, Set<String>> deviceZoneMap;
+    private final ZoneEventDAO zoneEventDAO;
 
-    public ZoneEvaluator(SpatialIndex index, EventBroadcaster broadcaster, int threadCount) {
+    public ZoneEvaluator(SpatialIndex index, EventBroadcaster broadcaster, ZoneEventDAO zoneEventDAO, int threadCount) {
         this.spatialIndex = index;
         this.broadcaster = broadcaster;
         this.deviceZoneMap = new ConcurrentHashMap<>();
         this.threadPool = Executors.newFixedThreadPool(threadCount);
+        this.zoneEventDAO = zoneEventDAO;
     }
 
     public void evaluate(Location location) {
@@ -48,11 +51,15 @@ public class ZoneEvaluator {
         enteredZones.removeAll(prevZones);
 
         for (String zoneId : exitedZones) {
-            broadcaster.enqueue(new ZoneEvent(location.getDeviceID(), zoneId, "EXIT", location.getTimestamp()));
+            ZoneEvent event = new ZoneEvent(location.getDeviceID(), zoneId, "EXIT", location.getTimestamp());
+            broadcaster.enqueue(event);
+            zoneEventDAO.insertEvent(event);
         }
 
         for (String zoneId : enteredZones) {
-            broadcaster.enqueue(new ZoneEvent(location.getDeviceID(), zoneId, "ENTER", location.getTimestamp()));
+            ZoneEvent event = new ZoneEvent(location.getDeviceID(), zoneId, "ENTER", location.getTimestamp());
+            broadcaster.enqueue(event);
+            zoneEventDAO.insertEvent(event);
         }
 
         deviceZoneMap.put(location.getDeviceID(), nowInZones);
