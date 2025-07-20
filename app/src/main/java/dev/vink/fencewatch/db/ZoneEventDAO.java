@@ -9,8 +9,11 @@ import io.dropwizard.hibernate.AbstractDAO;
 
 public class ZoneEventDAO extends AbstractDAO<ZoneEvent> {
 
+    private SessionFactory sessionFactory;
+
     public ZoneEventDAO(SessionFactory sessionFactory) {
         super(sessionFactory);
+        this.sessionFactory = sessionFactory;
     }
 
     public ZoneEvent insertEvent(ZoneEvent zoneEvent) {
@@ -24,4 +27,19 @@ public class ZoneEventDAO extends AbstractDAO<ZoneEvent> {
                         .setParameter("deviceID", deviceID));
     }
 
+    // Use when UnitOfWork cannot call the insert
+    public ZoneEvent insertEventWithTransaction(ZoneEvent zoneEvent) {
+        var session = sessionFactory.openSession();
+        var tx = session.beginTransaction();
+        try {
+            session.persist(zoneEvent);
+            tx.commit();
+            return zoneEvent;
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+    }
 }

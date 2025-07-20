@@ -13,6 +13,7 @@ logging:
   level: INFO
   loggers:
     dev.vink.fencewatch: DEBUG
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: WARN
 
 database:
   driverClass: org.h2.Driver

@@ -4,7 +4,7 @@ import java.time.Instant;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ZoneEvent")
+@Table(name = "ZoneEvents")
 public class ZoneEvent {
 
     @Id
@@ -33,11 +33,11 @@ public class ZoneEvent {
         this.timestamp = timestamp;
     }
 
-    public String getdeviceID() {
+    public String getDeviceID() {
         return deviceID;
     }
 
-    public void setdeviceID(String deviceID) {
+    public void setDeviceID(String deviceID) {
         this.deviceID = deviceID;
     }
 

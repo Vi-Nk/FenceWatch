@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import dev.vink.fencewatch.core.Zone;
 import dev.vink.fencewatch.db.ZoneDAO;
+import dev.vink.fencewatch.service.SpatialIndex;
 import io.dropwizard.hibernate.UnitOfWork;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -19,9 +20,11 @@ import jakarta.ws.rs.core.Response;
 @Path("/zones")
 public class ZoneResource {
     private ZoneDAO zoneDAO;
+    private SpatialIndex spatialIndex;
 
-    public ZoneResource(ZoneDAO zoneDAO) {
+    public ZoneResource(ZoneDAO zoneDAO, SpatialIndex spatialIndex) {
         this.zoneDAO = zoneDAO;
+        this.spatialIndex = spatialIndex;
     }
 
     @GET
@@ -45,6 +48,7 @@ public class ZoneResource {
     @UnitOfWork
     public Response addZone(Zone zone) {
         Zone created = zoneDAO.add(zone);
+        spatialIndex.addZone(zone);
         return Response.accepted(Map.of("status", "created",
                 "zoneName", created.getZoneName())).build();
     }

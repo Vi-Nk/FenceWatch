@@ -13,6 +13,7 @@ import dev.vink.fencewatch.service.ZoneEvaluator;
 import dev.vink.fencewatch.api.*;
 import dev.vink.fencewatch.api.websocket.*;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import javax.sql.DataSource;
@@ -51,17 +52,19 @@ public class FenceWatchApplication extends Application<FenceWatchConfiguration> 
         final LocationDAO locationDAO = new LocationDAO(hibernateBundle.getSessionFactory());
         final ZoneEventDAO zoneEventDAO = new ZoneEventDAO(hibernateBundle.getSessionFactory());
 
+        final SpatialIndex spatialIndex = new SpatialIndex();
         final EventBroadcaster eventBroadcaster = new EventBroadcaster(2);
-        final ZoneEvaluator zoneEvaluator = new ZoneEvaluator(new SpatialIndex(), eventBroadcaster, zoneEventDAO, 2);
+        final ZoneEvaluator zoneEvaluator = new ZoneEvaluator(spatialIndex, eventBroadcaster, zoneEventDAO, 2);
 
         environment.jersey().register(new DeviceResource(deviceDAO, zoneEventDAO));
-        environment.jersey().register(new ZoneResource(zoneDAO));
+        environment.jersey().register(new ZoneResource(zoneDAO, spatialIndex));
         environment.jersey().register(new LocationUpdateResource(locationDAO, deviceDAO, zoneEvaluator));
 
         // Register WebSocket endpoint with Jetty
         JettyWebSocketServletContainerInitializer.configure(
                 environment.getApplicationContext(),
                 (servletContext, wsContainer) -> {
+                    wsContainer.setIdleTimeout(Duration.ZERO);
                     wsContainer.addMapping("/ws/events", (req, resp) -> new EventSocket());
                 });
 

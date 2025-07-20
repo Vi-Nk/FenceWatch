@@ -53,13 +53,13 @@ public class ZoneEvaluator {
         for (String zoneId : exitedZones) {
             ZoneEvent event = new ZoneEvent(location.getDeviceID(), zoneId, "EXIT", location.getTimestamp());
             broadcaster.enqueue(event);
-            zoneEventDAO.insertEvent(event);
+            zoneEventDAO.insertEventWithTransaction(event);
         }
 
         for (String zoneId : enteredZones) {
             ZoneEvent event = new ZoneEvent(location.getDeviceID(), zoneId, "ENTER", location.getTimestamp());
             broadcaster.enqueue(event);
-            zoneEventDAO.insertEvent(event);
+            zoneEventDAO.insertEventWithTransaction(event);
         }
 
         deviceZoneMap.put(location.getDeviceID(), nowInZones);
